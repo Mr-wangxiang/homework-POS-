@@ -1,23 +1,21 @@
 //TODO: Please write code in this file.
 function printInventory(inputs) {
-    var expectText ='***<没钱赚商店>购物清单***\n' ;
+
     var array = [];
 
-    	for(var i = 0; i<inputs.length;i++)
+    	for ( var i=0; i<inputs.length; i++ )
     	{
     		var exist = false ;
-    		for(var j=0 ; j<array.length; j++)
+    		for ( var j=0; j<array.length; j++ )
     		{
-
-    			if(array[j].name == inputs[i].name)
+    			if ( array[j].name == inputs[i].name )
     			{
     				array[j].count++;
     				exist = true;
-
+                    break;
     			}
-
     		}
-    		if(!exist)
+    		if (!exist)
     		{
     			var temp ={};
     			temp.name = inputs[i].name ;
@@ -27,18 +25,27 @@ function printInventory(inputs) {
     			temp.count = 1;
     			array.push(temp);
     		}
-
     	}
 
-    var sum = 0;
-    	for(var i=0; i<array.length;i++){
+        var sum = 0;
+        var expectText = '***<没钱赚商店>购物清单***\n' ;
+
+    	for ( var i=0; i<array.length;i++ )
+        {
+
     		sum+=array[i].count*array[i].price;
-            expectText +='名称：'+array[i].name+'，'+'数量：'+array[i].count+array[i].unit+'，单价：'+array[i].price+'(元)，小计：'+(array[i].price*array[i].count).toFixed(2)+'(元)\n';
+
+            expectText +='名称：'+array[i].name+'，'+
+            '数量：'+array[i].count+array[i].unit+'，'+
+            '单价：'+array[i].price+'(元)，'+
+            '小计：'+(array[i].price*array[i].count).toFixed(2)+'(元)\n';
 
     	}
-    expectText +='----------------------\n' +
-    	'总计：'+sum.toFixed(2)+'(元)\n' +
 
-    	'**********************'
+        expectText += '----------------------\n' +
+    	              '总计：'+sum.toFixed(2)+'(元)\n' +
+    	              '**********************'
+
         console.log(expectText);
+
 }

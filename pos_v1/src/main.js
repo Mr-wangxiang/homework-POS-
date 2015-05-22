@@ -1,102 +1,148 @@
-//TODO: Please write code in this file.
+function update_inputs(inputs,new_inputs) {
+
+    for ( i=0; i<inputs.length; i++ ) {
+
+        var barcode = inputs[i].indexOf('-')>-1 ? inputs[i].split('-')[0]  : inputs[i];
+        var count = inputs[i].indexOf('-')>-1 ? inputs[i].split('-')[1] : 1;
+
+        var exist = false;
+		var real_count ;
+        for ( j=0; j<new_inputs.length; j++) {
+            if ( inputs[i] === new_inputs[j].barcode) {
+                new_inputs[j].count += count;
+                new_inputs[j].real_count += count;
+                exist = true;
+                break;
+                }
+            }
+            if (!exist) {
+                var new_item = {};
+                new_item.barcode = barcode;
+                new_item.count = count;
+                new_item.real_count = count;
+                new_inputs.push(new_item);
+            }
+    }
+    return new_inputs;
+}
+
+function update_new_inputs(new_inputs,all_items) {
+    for ( i=0; i<new_inputs.length; i++ ) {
+        for ( j=0; j<all_items.length; j++) {
+            if ( new_inputs[i].barcode === all_items[j].barcode ) {
+                new_inputs[i].name = all_items[j].name;
+                new_inputs[i].unit = all_items[j].unit;
+                new_inputs[i].price = all_items[j].price;
+                break;
+                }
+            }
+        }
+    return new_inputs;
+}
+
+function update_new_inputs_list(new_inputs,reduce_list){
+    for( i=0; i<new_inputs.length; i++) {
+    	for ( j = 0; j < reduce_list.length; j++) {
+            var reduce_count = new_inputs[i].real_count;
+            if (new_inputs[i].barcode === reduce_list[j] && reduce_count>2 ) {
+                new_inputs[i].real_count -= Math.floor(new_inputs[i].real_count/3);
+
+            }
+        }
+    }
+
+    return new_inputs;
+}
+
+function cal_total_price(total_price,new_inputs) {
+
+    for (i=0; i<new_inputs.length; i++) {
+
+        total_price += new_inputs[i].price*new_inputs[i].real_count;
+
+    }
+    return total_price;
+}
+
+function shopping_list(new_inputs) {
+
+    var expectText ='***<没钱赚商店>购物清单***\n' ;
+    for (i=0; i<new_inputs.length; i++) {
+
+        var subtotal = (new_inputs[i].price*new_inputs[i].real_count).toFixed(2);
+        var count_unit = new_inputs[i].count+new_inputs[i].unit;
+
+       	expectText = expectText +
+        '名称：'+ new_inputs[i].name + '，' +
+        '数量：'+ count_unit + '，' +
+        '单价：'+ new_inputs[i].price.toFixed(2) + '(元)，' +
+        '小计：'+ subtotal+'(元)\n';
+
+    }
+    return expectText;
+}
+
+function cal_reduce_price (new_inputs) {
+    var reduce_price = 0;
+    for ( i=0; i<new_inputs.length; i++) {
+        if (new_inputs[i].real_count != new_inputs[i].count) {
+            reduce_price +=  Math.floor(new_inputs[i].count/3)* new_inputs[i].price;
+
+            }
+        }
+    return reduce_price;
+}
+function song_shopping_list(new_inputs) {
+    var result_reduce = '----------------------\n'+
+                        '挥泪赠送商品：\n';
+
+    for ( i=0; i<new_inputs.length; i++) {
+        if (new_inputs[i].real_count!=new_inputs[i].count) {
+
+            var reduce_count_list =  Math.floor(new_inputs[i].count/3) + new_inputs[i].unit;
+
+            result_reduce=result_reduce+
+            '名称：'+ new_inputs[i].name + '，' +
+            '数量：'+ reduce_count_list +'\n';
+        }
+    }
+    return result_reduce ;
+
+}
+
+function result_sum_price (total_price,reduce_price) {
+
+    var result_sum_price = '----------------------\n'+
+                           '总计：'+total_price.toFixed(2)+'(元)\n'+
+                           '节省：'+reduce_price.toFixed(2)+'(元)\n'+
+                           '**********************';
+
+    return result_sum_price;
+
+}
+
 function printInventory(inputs) {
 
-    var  sum_list=[];
-     for (var i = 0; i < inputs.length; i++) {
-            var exist=false;
+    var  all_items = loadAllItems();
+    var  new_inputs = [];
+    var  item_num = [];
+	var  i,j;
+    new_inputs = update_inputs(inputs,new_inputs);
+    new_inputs = update_new_inputs(new_inputs,all_items);
 
-            var barcode=inputs[i].length>11?inputs[i].substring(0,10):inputs[i];
-            var count=inputs[i].length>11?parseInt(inputs[i].substring(11)):1;
+    var promotions = loadPromotions();
+    var reduce_list = promotions[0].barcodes;
+    new_inputs = update_new_inputs_list(new_inputs,reduce_list);
 
-            for (var x = 0; x < all_items.length; x++) {
-                if(all_items[x].barcode===barcode){
-                    for (var y = 0; y < sum_list.length; y++) {
-                        if (all_items[x].name===sum_list[y].name) {
-                            sum_list[y].count=sum_list[y].count+count;
-                            sum_list[y].reduce=sum_list[y].reduce+count;
-                            exist=true;
-                            break;
-                        }
-                    }
-                    if (!exist) {
-                        all_items[x].count=count;
-                        all_items[x].reduce=count;
+    var total_price = 0 ;
+    var result = '';
+    var real_count = 0;
+    total_price = cal_total_price(total_price,new_inputs);
+    result += shopping_list(new_inputs);
+    result += song_shopping_list(new_inputs);
+    reduce_price = cal_reduce_price (new_inputs);
+    result += result_sum_price (total_price,reduce_price);
 
-                        sum_list.push(all_items[x]);
-                    }
-                }
-            }
-        }
-
-
-    var promotions=[
-            {
-                type: 'BUY_TWO_GET_ONE_FREE',
-                barcodes: [
-                    'ITEM000000',
-                    'ITEM000001',
-                    'ITEM000005'
-                ]
-            }
-        ];
-    reduce_list=promotions[0].barcodes;
-
-        for (var i = 0; i < sum_list.length; i++) {
-            for (var j = 0; j < reduce_list.length; j++) {
-                if (sum_list[i].barcode===reduce_list[j]) {
-                    if (sum_list[i].reduce>2) {
-                        sum_list[i].reduce=sum_list[i].reduce-Math.floor(sum_list[i].reduce/3);
-                    }
-                }
-            }
-        }
-
-
-
-     var expectText ='***<没钱赚商店>购物清单***\n' ;
-    var total_price=0 ;
-        for (var i = 0; i < sum_list.length; i++) {
-
-            var subtotal=(sum_list[i].price*sum_list[i].reduce).toFixed(2);
-            var count_unit=sum_list[i].count+sum_list[i].unit;
-
-           	expectText= expectText +
-            '名称：'+ sum_list[i].name + '，' +
-            '数量：'+ count_unit + '，' +
-            '单价：'+ sum_list[i].price.toFixed(2) + '(元)，' +
-            '小计：'+ subtotal+'(元)\n';
-
-    		total_price+= sum_list[i].price*sum_list[i].reduce;
-
-        }
-
-
-    var result_reduce='----------------------\n'+'挥泪赠送商品：\n';
-    var reduce=0;
-        for (var q = 0;q < sum_list.length; q++) {
-            if (sum_list[q].reduce!=sum_list[q].count) {
-
-                var reduce_count_list = (sum_list[q].count-sum_list[q].reduce)+sum_list[q].unit;
-
-                result_reduce=result_reduce+
-                '名称：'+ sum_list[q].name + '，' +
-                '数量：'+ reduce_count_list +'\n';
-
-
-    			var reduce=reduce+(sum_list[q].count-sum_list[q].reduce)*sum_list[q].price;
-            }
-        }
-
-
-    var result_sum_price;
-        result_sum_price='----------------------\n'+'总计：'+total_price.toFixed(2)+'(元)\n';
-        result_sum_price=result_sum_price+'节省：'+reduce.toFixed(2)+'(元)\n';
-        result_bottom='**********************';
-
-    result =expectText+result_reduce+result_sum_price+result_bottom;
     console.log(result)
-
-
-
 
 }
